@@ -1,3 +1,5 @@
+//memoization
+
 import java.util.*;
 public class MatrixChainMultiplication {
 
