@@ -4,22 +4,28 @@ public class LongestNonRepeatSubstring {
 
 	public static int lengthOfLongestSubstring(String s) {
 
-		int l = s.length();
-		Hashtable<Character, Integer> h = new Hashtable<>();
-		int count = 0;
-		int max = 0;
-		for (int i = 0; i < l; i++) {
-			if (h.containsKey(s.charAt(i))) {
-				count = i - h.get(s.charAt(i));
-				h.remove(s.charAt(i));
-				h.put(s.charAt(i), i);
-			} else {
-				h.put(s.charAt(i), i);
-				count++;
-			}
-			max = (count > max) ? count : max;
-		}
-		return max;
+		int n = s.length();
+        if(n==0)
+            return 0;
+        if(s.equals(" "))
+            return 1;
+        
+        int size = 0, i=0,j=0;
+        
+        Hashtable<Character,Integer> map = new Hashtable<>();
+        
+        while(j<n)
+        {
+            if(map.containsKey(s.charAt(j)))
+            {
+                i = Math.max(map.get(s.charAt(j))+1 , i);
+            }
+            map.put(s.charAt(j),j);
+            size = Math.max(size,j-i+1);    
+            j++;
+            
+        }
+        return size;
 	}
 
 	public static void main(String args[]) {
