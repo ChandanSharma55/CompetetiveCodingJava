@@ -46,6 +46,7 @@ public class BFSShortestGrid {
 					int newX = x+dx[d];
 					int newY = y+dy[d];
 					q.add(new Point(newX,newY));
+					visited[x][y] = true;
 				}
 			}
 			result++;
