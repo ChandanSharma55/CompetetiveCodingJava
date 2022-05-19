@@ -1,66 +1,211 @@
 import java.util.*;
-public class TreeOfSpace {
 
-	static int nodes;
+class TestClass {
+
 	static int m;
-	static class Node
-	{
+	static int n;
+
+	public static class Node {
 		String value;
 		Node parent;
 		List<Node> children;
-		boolean isLockable;
-		boolean isAncestorLocked;
-		boolean isChildrenLocked;
-		Node(String value, Node parent)
-		{
+		int uid;
+		int isAncestorLocked;
+		boolean isLocked;
+		int isChildrenLocked;
+
+		Node(String value, Node parent) {
 			this.value = value;
-			this.children = new ArrayList<Node>();
 			this.parent = parent;
-			this.isAncestorLocked = false;
-			this.isChildrenLocked = false;
-			this.isLockable = true;
+			this.children = new ArrayList<Node>();
+			this.isAncestorLocked = 0;
+			this.isChildrenLocked = 0;
+			this.isLocked = false;
 		}
 	}
-	
-	
-	public static void Insert(String[] names)
-	{
-		
-	}
-	
-	public static void main(String args[])
-	{
-		Scanner sc= new Scanner(System.in);
-		
-		nodes = sc.nextInt();
-		m = sc.nextInt();
-		int op = sc.nextInt();
-		String [] names = new String[nodes];
-		for(int i=0;i<nodes;i++)
-		{
-			names[i] = sc.next();
-		}
-		
-		Insert(names);
-		
-		for(int i=0;i<op;i++)
-		{
-			System.out.print((i+1)+"-->");
-			int ot = sc.nextInt();
-			String value = sc.next();
-			int id = sc.nextInt();
-			switch(ot)
-			{
-				case 1: System.out.println(Lock(value,id));
-						break;
-				case 2: System.out.println(UnLock(value,id));
-						break;
-				case 3: System.out.println(Upgrade(value,id));
-						break;
+
+	static Node root = null;
+
+	public static void Insert(String[] names) {
+		root = new Node(names[0], null);
+		Queue<Node> q = new LinkedList<Node>();
+		q.offer(root);
+		int i = 1;
+		while (!q.isEmpty() && i < names.length) {
+			int ql = q.size();
+			Node curr = q.poll();
+			while (curr.children.size() != m) {
+				Node temp = new Node(names[i++], curr);
+				curr.children.add(temp);
+				q.offer(temp);
 			}
 		}
-		
+	}
+
+	// Lock
+	public static boolean Lock(String value, int id) {
+		Queue<Node> q = new LinkedList<>();
+		q.offer(root);
+		boolean flag = false;
+
+		// search
+		while (!q.isEmpty()) {
+			int ql = q.size();
+			while (ql-- > 0) {
+				Node curr = q.poll();
+				if (curr.value.equals(value)) {
+					if (curr.isLocked || curr.isAncestorLocked != 0 || curr.isChildrenLocked != 0)
+						return false;
+					else {
+
+						curr.isLocked = true;
+						curr.uid = id;
+
+						Node temp = curr;
+						// making parents known that iam locked
+						while (temp.parent != null) {
+							temp.parent.isChildrenLocked += 1;
+							temp = temp.parent;
+						}
+						flag = true;
+					}
+				}
+				for (Node child : curr.children) {
+					if (curr.isLocked || curr.isAncestorLocked > 0) {
+						child.isAncestorLocked += 1;
+					}
+					q.offer(child);
+				}
+			}
+		}
+
+		return true;
+
+	}
+
+	// Unlock
+	public static boolean UnLock(String value, int id) {
+		Queue<Node> q = new LinkedList<>();
+		q.offer(root);
+		boolean flag = false;
+
+		// search
+		while (!q.isEmpty()) {
+			int ql = q.size();
+			while (ql-- > 0) {
+				Node curr = q.poll();
+				if (curr.value.equals(value)) {
+					if (!curr.isLocked || (curr.isLocked && curr.uid != id))
+						return false;
+					else {
+
+						curr.isLocked = false;
+						Node temp = curr;
+						// making parents known that iam unlocked
+						while (temp.parent != null) {
+							temp.parent.isChildrenLocked -= 1;
+							temp = temp.parent;
+						}
+						flag = true;
+					}
+					while (!q.isEmpty())
+						q.poll();
+				}
+				for (Node child : curr.children) {
+					if (flag) {
+						child.isAncestorLocked -= 1;
+					}
+					q.offer(child);
+				}
+			}
+		}
+
+		return true;
+	}
+
+	// UpgradeLock
+	public static boolean UpgradeLock(String value, int id) {
+		Queue<Node> q = new LinkedList<>();
+		q.offer(root);
+		boolean flag = false;
+		Node temp = null;
+		// search
+		while (!q.isEmpty()) {
+			int ql = q.size();
+			while (ql-- > 0) {
+				Node curr = q.poll();
+				if (curr.value.equals(value)) {
+					if (curr.isLocked || curr.isAncestorLocked != 0)
+						return false;
+					else {
+						if (curr.isChildrenLocked > 0)
+							while (!q.isEmpty())
+								q.poll();
+						temp = curr;
+					}
+				}
+				for (Node child : curr.children) {
+					if (child.isLocked && child.uid != id) {
+						return false;
+					}
+
+					q.offer(child);
+				}
+			}
+		}
+
+		temp.isLocked = true;
+		temp.uid = id;
+		temp.isChildrenLocked = 0;
+		q = new LinkedList<>();
+		q.offer(temp);
+		while (!q.isEmpty()) {
+			Node x = q.poll();
+			for (Node child : x.children) {
+				if (child.isLocked && child.uid == id) {
+					child.isLocked = false;
+				}
+
+				q.offer(child);
+			}
+		}
+
+		return true;
+
+	}
+
+	public static void main(String args[]) throws Exception {
+
+		Scanner sc = new Scanner(System.in);
+
+		n = sc.nextInt();
+		m = sc.nextInt();
+		int q = sc.nextInt();
+
+		String[] names = new String[n];
+
+		for (int i = 0; i < n; i++) {
+			names[i] = sc.next();
+		}
+
+		Insert(names);
+
+		for (int i = 0; i < q; i++) {
+			int op = sc.nextInt();
+			String value = sc.next();
+			int id = sc.nextInt();
+			switch (op) {
+			case 1:
+				System.out.println(Lock(value, id));
+				break;
+			case 2:
+				System.out.println(UnLock(value, id));
+				break;
+			case 3:
+				System.out.println(UpgradeLock(value, id));
+				break;
+			}
+		}
 		sc.close();
 	}
-	
 }
