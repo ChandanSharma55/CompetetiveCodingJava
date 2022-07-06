@@ -5,7 +5,7 @@ public class MinimumTimeTrips {
 	public static long minimumTime(int[] time, int totalTrips) {
 		long lowerTime = 1;
 		long higherTime = Long.MAX_VALUE;
-		long midTime = lowerTime + ((higherTime-lowerTime)/2);
+		long t = lowerTime + ((higherTime-lowerTime)/2);
 		long sum = 0;
 		while(lowerTime < higherTime)
 		{
